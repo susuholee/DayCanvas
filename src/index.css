@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@100..900&family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-app-bg: #fcfcf9; 
+  --color-app-fg: #1a1a1a;
+  --color-border: #e4e4e7;
+  --font-sans: "Outfit", "Inter", system-ui, sans-serif;
+  --font-serif: "Nanum Myeongjo", serif;
+  --font-memo: "Noto Sans KR", "Outfit", sans-serif;
+  --font-content: "IBM Plex Sans KR", "Noto Sans KR", sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-app-bg);
+    color: var(--color-app-fg);
+    -webkit-font-smoothing: antialiased;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  /* Flat Premium Card */
+  .card-premium {
+    @apply relative bg-white border border-zinc-200 rounded-2xl p-8 transition-all duration-300 overflow-hidden shadow-none;
+  }
+  
+  .card-premium:hover {
+    @apply border-zinc-400 bg-zinc-50/30;
+  }
+
+  /* Flat Button Style */
+  .btn-bouncy {
+    @apply relative overflow-hidden px-8 py-4 bg-zinc-900 text-white rounded-xl font-bold text-sm tracking-tight transition-all duration-200 flex items-center justify-center gap-2 hover:bg-zinc-800 active:bg-zinc-950;
+  }
+
+  .btn-bouncy-outline {
+    @apply px-8 py-4 bg-white border border-zinc-200 text-zinc-900 rounded-xl font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2 hover:bg-zinc-50 hover:border-zinc-300 active:bg-zinc-100;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #a1a1aa;
+  }
+
+  .diary-serif {
+    font-family: var(--font-serif);
+  }
+
+  /* 본문 전용 고가독성 서체 */
+  .diary-content {
+    font-family: var(--font-content);
+    @apply text-zinc-600 font-normal;
+    font-size: 1.05rem;
+    line-height: 1.85;
+    letter-spacing: -0.01em;
+  }
+
+  /* 학습 메모 전용 폰트 — 노토 산스 KR */
+  .memo-text {
+    font-family: var(--font-memo);
+    font-size: 1rem;
+    line-height: 1.9;
+    letter-spacing: -0.01em;
+    font-weight: 400;
+    color: #52525b;
+  }
+
+  .diary-card {
+    @apply bg-white border border-zinc-200 rounded-3xl p-8 shadow-sm transition-all;
+  }
+
+  .input-label {
+    @apply text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-2 block;
+  }
+
+  .premium-input {
+    @apply w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-5 py-4 focus:outline-none focus:border-zinc-300 focus:bg-white transition-all text-base text-zinc-900;
+  }
+
+  /* Compact View Specifics */
+  .compact-row {
+    @apply flex items-center gap-4 transition-all duration-200;
+  }
+  
+  .compact-row:hover {
+    @apply translate-x-1;
+  }
+
+  .month-divider {
+    @apply relative flex items-center py-8;
+  }
+
+  .month-divider::before {
+    content: '';
+    @apply absolute left-0 right-0 h-px bg-zinc-100;
+  }
+}
