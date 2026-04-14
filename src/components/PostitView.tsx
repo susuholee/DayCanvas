@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import type { Todo } from '../lib/supabase';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, isSameDay, startOfMonth, startOfToday, isBefore } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { TodoDetailView } from './TodoDetailView';
 import type { CustomCategory } from './CategoryManagerModal';

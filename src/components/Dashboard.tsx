@@ -233,7 +233,7 @@ export function Dashboard({ session }: DashboardProps) {
                     providerToken={session.provider_token || undefined}
                   />
                 ) : viewMode === 'calendar' ? (
-                  <CalendarView todos={todos} session={session} onAlert={onAlert} />
+                  <CalendarView todos={todos} session={session} />
                 ) : (
                   <SalaryView />
                 )}

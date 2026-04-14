@@ -9,7 +9,6 @@ import { ko } from 'date-fns/locale';
 interface CalendarViewProps {
   todos: Todo[];
   session: Session;
-  onAlert?: (message: string, type?: 'success' | 'error') => void;
 }
 
 interface GoogleEvent {
@@ -20,7 +19,7 @@ interface GoogleEvent {
   htmlLink: string;
 }
 
-export function CalendarView({ todos, session, onAlert }: CalendarViewProps) {
+export function CalendarView({ todos, session }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [googleEvents, setGoogleEvents] = useState<GoogleEvent[]>([]);
 
@@ -59,8 +58,8 @@ export function CalendarView({ todos, session, onAlert }: CalendarViewProps) {
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart);
-  const endDate = endOfWeek(monthEnd);
+  const startDate = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
   const days = eachDayOfInterval({
     start: startDate,
@@ -103,14 +102,14 @@ export function CalendarView({ todos, session, onAlert }: CalendarViewProps) {
       </div>
 
       <div className="border border-zinc-200 rounded-[2rem] overflow-hidden bg-white shadow-2xl">
-        <div className="flex border-b border-zinc-100">
+        <div className="grid grid-cols-7 border-b border-zinc-100">
           {['일', '월', '화', '수', '목', '금', '토'].map((day) => (
-            <div key={day} className="flex-1 basis-[14.2857%] py-5 text-center text-[10px] font-black text-zinc-400 tracking-[0.2em]">
+            <div key={day} className="py-5 text-center text-[10px] font-black text-zinc-400 tracking-[0.2em]">
               {day}
             </div>
           ))}
         </div>
-        <div className="flex flex-wrap">
+        <div className="grid grid-cols-7">
           {days.map((day) => {
             const isCurrentMonth = isSameDay(startOfMonth(day), startOfMonth(currentDate));
             const dayTodos = todos.filter(t => {
@@ -126,7 +125,7 @@ export function CalendarView({ todos, session, onAlert }: CalendarViewProps) {
             return (
               <div 
                 key={day.toString()} 
-                className={`basis-[14.2857%] min-h-[140px] p-3 border-r border-b border-zinc-100 transition-all hover:bg-zinc-50 relative group ${!isCurrentMonth ? 'bg-zinc-50/50 grayscale opacity-30 pointer-events-none' : ''}`}
+                className={`min-h-[140px] p-3 border-r border-b border-zinc-100 transition-all hover:bg-zinc-50 relative group ${!isCurrentMonth ? 'bg-zinc-50/50 grayscale opacity-30 pointer-events-none' : ''}`}
               >
                 <div className={`text-sm font-extrabold mb-3 inline-flex items-center justify-center w-7 h-7 rounded-lg transition-all ${isSameDay(day, new Date()) ? 'bg-zinc-900 text-white scale-110 shadow-lg' : 'text-zinc-400'}`}>
                   {format(day, 'd')}

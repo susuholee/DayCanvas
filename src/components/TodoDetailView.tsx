@@ -3,7 +3,7 @@ import axios from 'axios';
 import type { Todo } from '../lib/supabase';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, isValid } from 'date-fns';
+import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import type { CustomCategory } from './CategoryManagerModal';
 
