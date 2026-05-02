@@ -37,3 +37,16 @@ export type Salary = {
   created_at: string;
 };
 
+export type Inquiry = {
+  id: string;
+  user_id: string;
+  author_name: string;
+  author_avatar: string | null;
+  title: string;
+  content: string;
+  is_public: boolean;
+  image_url: string | null;
+  status: 'pending' | 'answered';
+  answer: string | null;
+  created_at: string;
+};

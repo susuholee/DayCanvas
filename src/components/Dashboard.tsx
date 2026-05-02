@@ -8,8 +8,9 @@ import { CalendarView } from './CalendarView';
 import { SalaryView } from './SalaryView';
 import { TodoForm } from './TodoForm';
 import { MemoForm } from './MemoForm';
+import { InquiryBoard } from './InquiryBoard';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
+import { LoadingSpinner } from './LoadingSpinner';
 import { AlertModal } from './AlertModal';
 
 interface DashboardProps {
@@ -18,7 +19,7 @@ interface DashboardProps {
 
 export function Dashboard({ session }: DashboardProps) {
   const queryClient = useQueryClient();
-  const [viewMode, setViewMode] = useState<'postit' | 'calendar' | 'salary'>('postit');
+  const [viewMode, setViewMode] = useState<'postit' | 'calendar' | 'salary' | 'inquiry'>('postit');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isMemoFormOpen, setIsMemoFormOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -128,6 +129,15 @@ export function Dashboard({ session }: DashboardProps) {
           >
             <span className={`font-bold text-sm ${viewMode === 'salary' ? 'translate-x-1' : 'group-hover:translate-x-1'} transition-transform`}>월급 관리</span>
           </button>
+          
+          <div className="h-[1px] bg-zinc-100 my-4 mx-2" />
+          
+          <button
+            onClick={() => { setViewMode('inquiry'); setIsSidebarOpen(false); }}
+            className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-300 group ${viewMode === 'inquiry' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-900 hover:bg-white/50'}`}
+          >
+            <span className={`font-bold text-sm ${viewMode === 'inquiry' ? 'translate-x-1' : 'group-hover:translate-x-1'} transition-transform`}>문의 게시판</span>
+          </button>
 
         </nav>
 
@@ -157,7 +167,7 @@ export function Dashboard({ session }: DashboardProps) {
               animate={{ opacity: 1, y: 0 }}
               className="text-5xl font-black text-zinc-900 tracking-tighter mb-4"
             >
-              {viewMode === 'postit' ? '나의 일기장' : viewMode === 'calendar' ? '달력 보기' : '급여 관리'}
+              {viewMode === 'postit' ? '나의 일기장' : viewMode === 'calendar' ? '달력 보기' : viewMode === 'salary' ? '급여 관리' : ''}
             </motion.h1>
 
             <motion.p 
@@ -170,11 +180,13 @@ export function Dashboard({ session }: DashboardProps) {
                 ? '나의 일상이 쌓이는 소중한 공간'
                 : viewMode === 'calendar'
                 ? '미래를 계획하는 나의 시간'
-                : '나의 소중한 급여 정보'}
+                : viewMode === 'salary'
+                ? '나의 소중한 급여 정보'
+                : ''}
 
             </motion.p>
           </div>
-          {viewMode !== 'salary' && (
+          {viewMode !== 'salary' && viewMode !== 'inquiry' && (
             <div className="flex items-center gap-3">
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -199,13 +211,7 @@ export function Dashboard({ session }: DashboardProps) {
 
         <div className="max-w-6xl mx-auto">
           {loading && todos.length === 0 ? (
-            <div className="flex justify-center items-center py-32">
-              <motion.div 
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                className="w-10 h-10 border-4 border-zinc-900/10 border-t-zinc-950 rounded-full"
-              />
-            </div>
+            <LoadingSpinner />
           ) : (
             <AnimatePresence mode="wait">
               <motion.div
@@ -234,8 +240,10 @@ export function Dashboard({ session }: DashboardProps) {
                   />
                 ) : viewMode === 'calendar' ? (
                   <CalendarView todos={todos} session={session} />
-                ) : (
+                ) : viewMode === 'salary' ? (
                   <SalaryView />
+                ) : (
+                  <InquiryBoard session={session} onAlert={onAlert} />
                 )}
 
               </motion.div>
