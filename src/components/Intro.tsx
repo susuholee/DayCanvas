@@ -14,16 +14,16 @@ export function Intro({ onComplete }: IntroProps) {
     return () => clearTimeout(timer);
   }, [onComplete]);
 
-  const text = "언제나 기록하기";
+  const text = "나를 기록하는 공간";
 
   return (
     <motion.div
       initial={{ opacity: 1 }}
-      exit={{ 
-        opacity: 0, 
-        scale: 1.05, 
-        filter: "blur(10px)", 
-        transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] } 
+      exit={{
+        opacity: 0,
+        scale: 1.05,
+        filter: "blur(10px)",
+        transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] }
       }}
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden bg-[#fcfcf9]"
     >
@@ -58,9 +58,9 @@ export function Intro({ onComplete }: IntroProps) {
           className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center shadow-2xl shadow-zinc-900/20 mb-10"
         >
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/>
-            <path d="M8 7h6"/>
-            <path d="M8 11h8"/>
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+            <path d="M8 7h6" />
+            <path d="M8 11h8" />
           </svg>
         </motion.div>
 
