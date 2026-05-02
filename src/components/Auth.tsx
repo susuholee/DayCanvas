@@ -1,8 +1,16 @@
+import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { motion } from 'framer-motion';
 import profileImg from '../assets/profile.jpg';
+import { AlertModal } from './AlertModal';
 
 export function Auth() {
+  const [alertConfig, setAlertConfig] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
+    isOpen: false,
+    message: '',
+    type: 'success'
+  });
+
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -19,7 +27,7 @@ export function Auth() {
       if (error) throw error;
     } catch (error) {
       console.error('Error logging in:', error);
-      alert('로그인 중 오류가 발생했습니다.');
+      setAlertConfig({ isOpen: true, message: '로그인 중 오류가 발생했습니다.', type: 'error' });
     }
   };
 
@@ -99,6 +107,13 @@ export function Auth() {
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#3d5a80]/[0.03] rounded-full blur-[120px]" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#ee6c4d]/[0.02] rounded-full blur-[100px]" />
       </div>
+
+      <AlertModal 
+        isOpen={alertConfig.isOpen}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

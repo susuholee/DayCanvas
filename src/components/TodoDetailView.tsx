@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import type { CustomCategory } from './CategoryManagerModal';
+import { ConfirmModal } from './ConfirmModal';
 
 interface TodoDetailViewProps {
   todo: Todo;
@@ -32,6 +33,7 @@ export function TodoDetailView({ todo, onClose, onUpdate, onDelete, onAlert, pro
   const [editDueDate, setEditDueDate] = useState(initialDate);
   const [editCategory, setEditCategory] = useState<string>(todo.category);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [modalSize, setModalSize] = useState({ w: 512, h: 0 });
   const [categories, setCategories] = useState<CustomCategory[]>(DEFAULT_CATEGORIES);
   const resizeRef = useRef({ isResizing: false, startX: 0, startY: 0, startW: 0, startH: 0 });
@@ -121,11 +123,9 @@ export function TodoDetailView({ todo, onClose, onUpdate, onDelete, onAlert, pro
   };
 
   const handleDelete = async () => {
-    if (confirm('정말로 이 기록을 삭제하시겠습니까?')) {
-      await deleteGoogleCalendarEvent();
-      onDelete(todo.id);
-      onClose();
-    }
+    await deleteGoogleCalendarEvent();
+    onDelete(todo.id);
+    onClose();
   };
 
   const currentCatInfo = getCategoryInfo(todo.category);
@@ -160,7 +160,7 @@ export function TodoDetailView({ todo, onClose, onUpdate, onDelete, onAlert, pro
         </div>
         <div className="flex items-center gap-3">
           {!isEditing && <button onClick={() => setIsEditing(true)} className="text-[10px] font-black text-zinc-400 hover:text-zinc-900 transition-colors uppercase tracking-[0.2em]">수정</button>}
-          <button onClick={handleDelete} className="text-[10px] font-black text-zinc-300 hover:text-red-500 transition-colors uppercase tracking-[0.2em]">삭제</button>
+          <button onClick={() => setIsDeleteConfirmOpen(true)} className="text-[10px] font-black text-zinc-300 hover:text-red-500 transition-colors uppercase tracking-[0.2em]">삭제</button>
           <button onClick={onClose} className="text-[10px] font-black text-zinc-400 hover:text-zinc-900 transition-colors uppercase tracking-[0.2em]">닫기</button>
         </div>
       </div>
@@ -226,6 +226,19 @@ export function TodoDetailView({ todo, onClose, onUpdate, onDelete, onAlert, pro
       <div onMouseDown={handleResizeMouseDown} className="absolute bottom-3 right-3 w-5 h-5 cursor-se-resize z-10 flex items-end justify-end opacity-25 hover:opacity-60 transition-opacity">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 10L10 2M6 10L10 6M10 10V10" stroke="#71717a" strokeWidth="1.8" strokeLinecap="round"/></svg>
       </div>
+
+      <ConfirmModal
+        isOpen={isDeleteConfirmOpen}
+        onCancel={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={() => {
+          setIsDeleteConfirmOpen(false);
+          handleDelete();
+        }}
+        title="기록 삭제"
+        message="정말로 이 기록을 삭제하시겠습니까? 삭제된 데이터는 복구할 수 없습니다."
+        isDanger={true}
+        confirmLabel="삭제"
+      />
     </motion.div>
   );
 }

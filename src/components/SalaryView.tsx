@@ -3,6 +3,7 @@ import { supabase, type Salary } from '../lib/supabase';
 import { calculateSalaryDetails, formatNumber } from '../lib/salaryUtils';
 
 import { AlertModal } from './AlertModal';
+import { ConfirmModal } from './ConfirmModal';
 
 export const SalaryView: React.FC = () => {
   const [salaries, setSalaries] = useState<Salary[]>([]);
@@ -12,6 +13,7 @@ export const SalaryView: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'success' | 'error'>('success');
   const [modalMessage, setModalMessage] = useState('');
+  const [isDeleteAllConfirmOpen, setIsDeleteAllConfirmOpen] = useState(false);
 
   const [grossSalary, setGrossSalary] = useState<number>(2333334);
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().substring(0, 7));
@@ -134,10 +136,6 @@ export const SalaryView: React.FC = () => {
   };
 
   const handleDeleteAllSalaries = async () => {
-    if (!window.confirm("정말로 모든 급여 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
-      return;
-    }
-
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -179,7 +177,7 @@ export const SalaryView: React.FC = () => {
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={handleDeleteAllSalaries}
+            onClick={() => setIsDeleteAllConfirmOpen(true)}
             className="text-[10px] font-black text-zinc-300 hover:text-red-500 transition-all uppercase tracking-widest px-3 py-2"
           >
             기록 초기화
@@ -298,6 +296,19 @@ export const SalaryView: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         message={modalMessage}
         type={modalType}
+      />
+
+      <ConfirmModal
+        isOpen={isDeleteAllConfirmOpen}
+        onCancel={() => setIsDeleteAllConfirmOpen(false)}
+        onConfirm={() => {
+          setIsDeleteAllConfirmOpen(false);
+          handleDeleteAllSalaries();
+        }}
+        title="기록 초기화"
+        message="정말로 모든 급여 기록을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        isDanger={true}
+        confirmLabel="전체 삭제"
       />
 
       {/* 급여 등록 모달 */}
