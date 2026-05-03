@@ -15,7 +15,8 @@ export const SalaryView: React.FC = () => {
   const [modalMessage, setModalMessage] = useState('');
   const [isDeleteAllConfirmOpen, setIsDeleteAllConfirmOpen] = useState(false);
 
-  const [grossSalary, setGrossSalary] = useState<number>(2333334);
+  const [grossSalary, setGrossSalary] = useState<number>(0);
+  const [savedDefaultGross, setSavedDefaultGross] = useState<number>(0);
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().substring(0, 7));
 
   useEffect(() => {
@@ -58,11 +59,13 @@ export const SalaryView: React.FC = () => {
     const defaultGross = user.user_metadata?.default_gross_salary;
     if (defaultGross) {
       setGrossSalary(Number(defaultGross));
+      setSavedDefaultGross(Number(defaultGross));
     }
 
     const { data, error } = await supabase
       .from('salaries')
       .select('*')
+      .eq('user_id', user.id)
       .order('month', { ascending: false });
 
     if (error) {
@@ -83,6 +86,7 @@ export const SalaryView: React.FC = () => {
       setModalType('error');
       setModalMessage('기본 급여 저장 중 오류가 발생했습니다.');
     } else {
+      setSavedDefaultGross(grossSalary);
       setModalType('success');
       setModalMessage('나의 기본 급여로 저장되었습니다. 다음 접속 시 이 금액이 기본으로 입력됩니다.');
     }
@@ -355,7 +359,7 @@ export const SalaryView: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      setGrossSalary(2333334);
+                      setGrossSalary(savedDefaultGross);
                       setSelectedMonth(new Date().toISOString().substring(0, 7));
                     }}
                     className="p-3 bg-zinc-50 border border-zinc-100 rounded-2xl text-[10px] font-black text-zinc-400 hover:text-zinc-900 transition-all"

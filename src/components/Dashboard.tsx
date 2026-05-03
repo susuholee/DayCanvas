@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Todo } from '../lib/supabase';
@@ -12,6 +12,9 @@ import { InquiryBoard } from './InquiryBoard';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from './LoadingSpinner';
 import { AlertModal } from './AlertModal';
+import { ConfirmModal } from './ConfirmModal';
+
+const DEVELOPER_EMAIL = 'akakak1359@gmail.com';
 
 interface DashboardProps {
   session: Session;
@@ -28,6 +31,38 @@ export function Dashboard({ session }: DashboardProps) {
     message: '',
     type: 'success'
   });
+
+  const isDevMode = session.user.email === DEVELOPER_EMAIL;
+  const [newInquiryCount, setNewInquiryCount] = useState(0);
+  const [devToast, setDevToast] = useState<{ show: boolean; title: string; author: string } | null>(null);
+  const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
+
+  const showDevToast = useCallback((title: string, author: string) => {
+    setDevToast({ show: true, title, author });
+    setTimeout(() => setDevToast(null), 6000);
+  }, []);
+
+  useEffect(() => {
+    if (!isDevMode) return;
+
+    const channel = supabase
+      .channel('new-inquiries-dev')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'inquiries' },
+        (payload) => {
+          const newInquiry = payload.new as { title: string; author_name: string };
+          setNewInquiryCount((prev) => prev + 1);
+          showDevToast(newInquiry.title, newInquiry.author_name);
+          queryClient.invalidateQueries({ queryKey: ['inquiries'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isDevMode, showDevToast, queryClient]);
 
   // Fetch Todos with useQuery
   const { data: todos = [], isLoading: loading } = useQuery<Todo[]>({
@@ -72,6 +107,20 @@ export function Dashboard({ session }: DashboardProps) {
   });
 
   const handleLogout = () => supabase.auth.signOut();
+
+  const handleDeleteAccount = async () => {
+    try {
+      const { error } = await supabase.rpc('delete_my_account');
+      if (error) {
+        setAlertConfig({ isOpen: true, message: '탈퇴 중 오류가 발생했습니다: ' + error.message, type: 'error' });
+        return;
+      }
+      // 성공 시 로그아웃
+      await supabase.auth.signOut();
+    } catch {
+      setAlertConfig({ isOpen: true, message: '오류가 발생했습니다. 다시 시도해주세요.', type: 'error' });
+    }
+  };
 
   const onAlert = (message: string, type: 'success' | 'error' = 'success') => {
     setAlertConfig({ isOpen: true, message, type });
@@ -133,10 +182,19 @@ export function Dashboard({ session }: DashboardProps) {
           <div className="h-[1px] bg-zinc-100 my-4 mx-2" />
           
           <button
-            onClick={() => { setViewMode('inquiry'); setIsSidebarOpen(false); }}
+            onClick={() => {
+              setViewMode('inquiry');
+              setIsSidebarOpen(false);
+              setNewInquiryCount(0);
+            }}
             className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-300 group ${viewMode === 'inquiry' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-900 hover:bg-white/50'}`}
           >
-            <span className={`font-bold text-sm ${viewMode === 'inquiry' ? 'translate-x-1' : 'group-hover:translate-x-1'} transition-transform`}>문의 게시판</span>
+            <span className={`font-bold text-sm flex-1 text-left ${viewMode === 'inquiry' ? 'translate-x-1' : 'group-hover:translate-x-1'} transition-transform`}>문의 게시판</span>
+            {isDevMode && newInquiryCount > 0 && (
+              <span className="ml-2 min-w-[20px] h-5 px-1.5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse">
+                {newInquiryCount}
+              </span>
+            )}
           </button>
 
         </nav>
@@ -154,6 +212,12 @@ export function Dashboard({ session }: DashboardProps) {
             className="w-full flex items-center justify-center py-4 text-zinc-500 hover:text-zinc-900 border border-zinc-200 hover:border-zinc-300 rounded-2xl transition-all text-xs font-black uppercase tracking-widest bg-zinc-50/50 hover:bg-white hover:shadow-sm"
           >
             <span>로그아웃</span>
+          </button>
+          <button
+            onClick={() => setIsDeleteAccountOpen(true)}
+            className="w-full mt-2 flex items-center justify-center py-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all text-[10px] font-black uppercase tracking-widest"
+          >
+            탈퇴하기
           </button>
         </div>
       </aside>
@@ -291,6 +355,55 @@ export function Dashboard({ session }: DashboardProps) {
         type={alertConfig.type}
         onClose={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))}
       />
+
+      <ConfirmModal
+        isOpen={isDeleteAccountOpen}
+        onCancel={() => setIsDeleteAccountOpen(false)}
+        onConfirm={() => {
+          setIsDeleteAccountOpen(false);
+          handleDeleteAccount();
+        }}
+        title="계정 탈퇴"
+        message="정말로 탈퇴하시겠습니까? 모든 일기, 계획, 월급 기록이 영구 삭제되며 이 작업은 되돌릴 수 없습니다."
+        isDanger={true}
+        confirmLabel="탈퇴하기"
+      />
+
+      {/* 개발자 전용 실시간 문의 토스트 알림 */}
+      <AnimatePresence>
+        {isDevMode && devToast?.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 80, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 80, scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            className="fixed bottom-6 right-6 z-[100] max-w-sm w-full"
+          >
+            <div className="bg-zinc-900 text-white rounded-3xl p-5 shadow-2xl border border-zinc-700 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-2xl bg-red-500 flex items-center justify-center shrink-0 mt-0.5">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">새 문의가 도착했습니다 🔔</p>
+                <p className="text-sm font-bold text-white truncate mb-0.5">{devToast.title}</p>
+                <p className="text-xs text-zinc-400 font-medium">작성자: {devToast.author}</p>
+              </div>
+              <button
+                onClick={() => setDevToast(null)}
+                className="text-zinc-500 hover:text-white transition-colors shrink-0"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
