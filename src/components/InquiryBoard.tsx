@@ -14,11 +14,14 @@ interface InquiryBoardProps {
   onAlert: (message: string, type?: 'success' | 'error') => void;
 }
 
-export function InquiryBoard({ onAlert }: InquiryBoardProps) {
+const DEVELOPER_EMAIL = 'akakak1359@gmail.com';
+
+export function InquiryBoard({ session, onAlert }: InquiryBoardProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+  const isDevMode = session.user.email === DEVELOPER_EMAIL;
 
-  const { data: inquiries = [], isLoading } = useQuery<Inquiry[]>({
+  const { data: inquiries = [], isLoading, refetch } = useQuery<Inquiry[]>({
     queryKey: ['inquiries'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -124,6 +127,12 @@ export function InquiryBoard({ onAlert }: InquiryBoardProps) {
             <InquiryDetailModal
               inquiry={selectedInquiry}
               onClose={() => setSelectedInquiry(null)}
+              isDevMode={isDevMode}
+              onAnswerSubmit={async () => {
+                await refetch();
+                setSelectedInquiry(null);
+              }}
+              onAlert={onAlert}
             />
           </div>
         )}
