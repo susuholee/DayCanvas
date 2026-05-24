@@ -7,6 +7,7 @@ import { ko } from 'date-fns/locale';
 import { InquiryFormModal } from './InquiryFormModal';
 import { InquiryDetailModal } from './InquiryDetailModal';
 import { LoadingSpinner } from './LoadingSpinner';
+import { ConfirmModal } from './ConfirmModal';
 import type { Session } from '@supabase/supabase-js';
 
 interface InquiryBoardProps {
@@ -19,7 +20,44 @@ const DEVELOPER_EMAIL = 'akakak1359@gmail.com';
 export function InquiryBoard({ session, onAlert }: InquiryBoardProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
+  const [inquiryToDelete, setInquiryToDelete] = useState<Inquiry | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const isDevMode = session.user.email === DEVELOPER_EMAIL;
+
+  const handleConfirmDelete = async () => {
+    if (!inquiryToDelete) return;
+    setIsDeleting(true);
+    try {
+      if (inquiryToDelete.image_url) {
+        const parts = inquiryToDelete.image_url.split('/inquiry_images/');
+        if (parts.length > 1) {
+          const filePath = parts[1];
+          const { error: storageError } = await supabase.storage
+            .from('inquiry_images')
+            .remove([filePath]);
+          if (storageError) {
+            console.error('Storage delete error:', storageError);
+          }
+        }
+      }
+
+      const { error } = await supabase
+        .from('inquiries')
+        .delete()
+        .eq('id', inquiryToDelete.id);
+
+      if (error) throw error;
+
+      onAlert('문의 게시글이 완전히 삭제되었습니다.', 'success');
+      await refetch();
+    } catch (err) {
+      console.error(err);
+      onAlert('문의글 삭제 중 오류가 발생했습니다.', 'error');
+    } finally {
+      setIsDeleting(false);
+      setInquiryToDelete(null);
+    }
+  };
 
   const { data: inquiries = [], isLoading, refetch } = useQuery<Inquiry[]>({
     queryKey: ['inquiries'],
@@ -98,10 +136,23 @@ export function InquiryBoard({ session, onAlert }: InquiryBoardProps) {
                     <span>{format(new Date(inquiry.created_at), 'yyyy.MM.dd', { locale: ko })}</span>
                   </div>
                 </div>
-                <div className="text-zinc-300 group-hover:text-zinc-500 transition-colors shrink-0">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="m9 18 6-6-6-6"/>
-                  </svg>
+                <div className="flex items-center gap-4 shrink-0">
+                  {isDevMode && inquiry.status === 'answered' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInquiryToDelete(inquiry);
+                      }}
+                      className="px-3 py-1.5 text-[10px] font-black text-rose-500 bg-rose-50 border border-rose-100 hover:bg-rose-500 hover:text-white transition-all rounded-lg uppercase tracking-widest"
+                    >
+                      삭제
+                    </button>
+                  )}
+                  <div className="text-zinc-300 group-hover:text-zinc-500 transition-colors">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                  </div>
                 </div>
               </div>
             ))}
@@ -137,6 +188,16 @@ export function InquiryBoard({ session, onAlert }: InquiryBoardProps) {
           </div>
         )}
       </AnimatePresence>
+      <ConfirmModal
+        isOpen={!!inquiryToDelete}
+        title="문의 게시글 삭제"
+        message="정말 이 문의 게시글을 완전히 삭제하시겠습니까? 첨부된 이미지 파일도 함께 영구 삭제됩니다."
+        confirmLabel={isDeleting ? '삭제 중...' : '삭제'}
+        cancelLabel="취소"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setInquiryToDelete(null)}
+        isDanger={true}
+      />
     </div>
   );
 }
