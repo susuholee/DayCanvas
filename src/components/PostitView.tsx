@@ -145,7 +145,7 @@ export function PostitView({ todos, onDelete, onUpdate, onAlert, providerToken }
         onClick={() => { if (!isMemo) setSelectedTodoId(todo.id); }}
         className={`group flex flex-col md:flex-row gap-8 items-start w-full ${!isMemo ? 'cursor-pointer' : 'cursor-default'}`}
       >
-        {catInfo.id === 'note' && (
+        {!isMemo && (
           <div className="flex flex-row md:flex-col items-baseline md:items-end gap-3 md:gap-0 min-w-[110px] pt-1">
             <span className="text-5xl font-black text-zinc-950 tracking-tighter leading-none">
               {format(new Date(todo.due_date || todo.created_at), 'dd')}

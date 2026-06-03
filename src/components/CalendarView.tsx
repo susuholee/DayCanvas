@@ -113,7 +113,6 @@ export function CalendarView({ todos, session }: CalendarViewProps) {
           {days.map((day) => {
             const isCurrentMonth = isSameDay(startOfMonth(day), startOfMonth(currentDate));
             const dayTodos = todos.filter(t => {
-              if (t.category !== 'note') return false;
               const dateToCompare = t.due_date || t.created_at;
               return dateToCompare && isSameDay(new Date(dateToCompare), day);
             });

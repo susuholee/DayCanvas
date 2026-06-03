@@ -89,7 +89,7 @@ export function TodoForm({ onClose, onSuccess, onAlert, providerToken }: TodoFor
         .insert({
           title: title.trim(),
           description: description.trim() || null,
-          due_date: category === 'note' ? (dueDate || null) : null,
+          due_date: dueDate || null,
           category: category,
           user_id: userData.user?.id
         })
@@ -210,17 +210,15 @@ export function TodoForm({ onClose, onSuccess, onAlert, providerToken }: TodoFor
             />
           </div>
 
-          {category === 'note' && (
-            <div className="space-y-2">
-              <label className="input-label">날짜 선택</label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="premium-input font-medium"
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <label className="input-label">날짜 선택</label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="premium-input font-medium"
+            />
+          </div>
 
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
