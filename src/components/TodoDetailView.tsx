@@ -87,11 +87,18 @@ export function TodoDetailView({ todo, onClose, onUpdate, onDelete, onAlert, pro
     try {
       const categoryLabel = getCategoryInfo(editCategory).label;
       const dateString = editDueDate || format(new Date(todo.created_at), 'yyyy-MM-dd');
+
+      // 구글 캘린더 API의 All-day 이벤트는 end date가 exclusive이므로 '시작일 + 1일'로 설정해야 정상 표시됩니다.
+      const parts = dateString.split('-');
+      const endDateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      endDateObj.setDate(endDateObj.getDate() + 1);
+      const nextDate = `${endDateObj.getFullYear()}-${String(endDateObj.getMonth() + 1).padStart(2, '0')}-${String(endDateObj.getDate()).padStart(2, '0')}`;
+
       await axios.patch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${todo.google_event_id}`, {
         summary: `[${categoryLabel}] ${editTitle}`,
         description: editDescription,
         start: { date: dateString },
-        end: { date: dateString },
+        end: { date: nextDate },
       }, { headers: { 'Authorization': `Bearer ${providerToken}`, 'Content-Type': 'application/json' } });
     } catch (err: any) {
       onAlert?.('구글 일정 수정 실패', 'error');

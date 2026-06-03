@@ -54,13 +54,19 @@ export function TodoForm({ onClose, onSuccess, onAlert, providerToken }: TodoFor
       const eventTitle = `[${categoryLabel}] ${todoTitle}`;
       const date = todoDate || new Date().toISOString().split('T')[0];
 
+      // 구글 캘린더 API의 All-day 이벤트는 end date가 exclusive이므로 '시작일 + 1일'로 설정해야 정상 표시됩니다.
+      const parts = date.split('-');
+      const endDateObj = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      endDateObj.setDate(endDateObj.getDate() + 1);
+      const nextDate = `${endDateObj.getFullYear()}-${String(endDateObj.getMonth() + 1).padStart(2, '0')}-${String(endDateObj.getDate()).padStart(2, '0')}`;
+
       const response = await axios.post(
         'https://www.googleapis.com/calendar/v3/calendars/primary/events',
         {
           summary: eventTitle,
           description: todoDescription,
           start: { date: date },
-          end: { date: date },
+          end: { date: nextDate },
         },
         {
           headers: {
