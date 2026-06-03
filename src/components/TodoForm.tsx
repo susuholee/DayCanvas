@@ -49,11 +49,9 @@ export function TodoForm({ onClose, onSuccess, onAlert, providerToken }: TodoFor
       return null;
     }
 
-    // Only sync if category is 'note' (existing behavior)
-    if (todoCategory !== 'note') return null;
-
     try {
-      const eventTitle = `[일기] ${todoTitle}`;
+      const categoryLabel = categories.find(c => c.id === todoCategory)?.label || '기록';
+      const eventTitle = `[${categoryLabel}] ${todoTitle}`;
       const date = todoDate || new Date().toISOString().split('T')[0];
 
       const response = await axios.post(
@@ -98,12 +96,12 @@ export function TodoForm({ onClose, onSuccess, onAlert, providerToken }: TodoFor
 
       if (supabaseError) throw supabaseError;
 
-      const googleEventId = category === 'note' ? await createGoogleCalendarEvent(
+      const googleEventId = await createGoogleCalendarEvent(
         title.trim(),
         description.trim(),
         dueDate,
         category
-      ) : null;
+      );
 
       if (googleEventId) {
         await supabase

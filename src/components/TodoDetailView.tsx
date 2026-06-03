@@ -83,11 +83,12 @@ export function TodoDetailView({ todo, onClose, onUpdate, onDelete, onAlert, pro
   }, [isEditing, onClose]);
 
   const updateGoogleCalendarEvent = async () => {
-    if (!providerToken || !todo.google_event_id || editCategory !== 'note') return;
+    if (!providerToken || !todo.google_event_id) return;
     try {
+      const categoryLabel = getCategoryInfo(editCategory).label;
       const dateString = editDueDate || format(new Date(todo.created_at), 'yyyy-MM-dd');
       await axios.patch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${todo.google_event_id}`, {
-        summary: `[일기] ${editTitle}`,
+        summary: `[${categoryLabel}] ${editTitle}`,
         description: editDescription,
         start: { date: dateString },
         end: { date: dateString },
@@ -111,7 +112,7 @@ export function TodoDetailView({ todo, onClose, onUpdate, onDelete, onAlert, pro
     const success = await onUpdate(todo.id, {
       title: editTitle,
       description: editDescription || null,
-      due_date: editCategory === 'note' ? (editDueDate || null) : null,
+      due_date: editDueDate || null,
       category: editCategory,
     });
     if (success) {
@@ -189,7 +190,7 @@ export function TodoDetailView({ todo, onClose, onUpdate, onDelete, onAlert, pro
                   ))}
                 </div>
               </div>
-              {editCategory === 'note' && (
+              {getCategoryInfo(editCategory).type !== 'memo' && (
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em] ml-1">날짜</label>
                   <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="premium-input text-sm font-bold" />
@@ -208,7 +209,7 @@ export function TodoDetailView({ todo, onClose, onUpdate, onDelete, onAlert, pro
                     <span className={`text-[10px] font-black px-3 py-1 rounded-lg border uppercase tracking-widest ${colorClasses[currentCatInfo.color] || colorClasses.zinc}`}>
                       {currentCatInfo.label}
                     </span>
-                    {todo.category === 'note' && (
+                    {currentCatInfo.type !== 'memo' && (
                       <span className="text-xs font-bold text-zinc-400">{format(new Date(todo.due_date || todo.created_at), 'yyyy년 MM월 dd일 EEEE', { locale: ko })}</span>
                     )}
                   </div>
