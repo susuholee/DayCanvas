@@ -144,13 +144,13 @@ export function Dashboard({ session }: DashboardProps) {
       `}>
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-zinc-900 text-white rounded-lg flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M8 7h6"/><path d="M8 11h8"/></svg>
+            <div className="w-8 h-8 flex items-center justify-center relative">
+              <img src="/daycanvas.png" alt="DayCanvas" className="absolute w-24 h-24 max-w-none object-contain" />
             </div>
             <span className="font-extrabold text-lg tracking-tight text-zinc-950">DayCanvas</span>
           </div>
-          <button 
-            onClick={() => setIsSidebarOpen(false)} 
+          <button
+            onClick={() => setIsSidebarOpen(false)}
             className="lg:hidden text-[10px] font-black text-zinc-400 hover:text-zinc-900 transition-colors uppercase tracking-[0.2em]"
           >
             닫기
@@ -171,16 +171,16 @@ export function Dashboard({ session }: DashboardProps) {
           >
             <span className={`font-bold text-sm ${viewMode === 'calendar' ? 'translate-x-1' : 'group-hover:translate-x-1'} transition-transform`}>달력 모드</span>
           </button>
-          
+
           <button
             onClick={() => { setViewMode('salary'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center px-4 py-3 rounded-xl transition-all duration-300 group ${viewMode === 'salary' ? 'bg-white text-zinc-900 shadow-sm border border-zinc-200/50' : 'text-zinc-500 hover:text-zinc-900 hover:bg-white/50'}`}
           >
             <span className={`font-bold text-sm ${viewMode === 'salary' ? 'translate-x-1' : 'group-hover:translate-x-1'} transition-transform`}>월급 관리</span>
           </button>
-          
+
           <div className="h-[1px] bg-zinc-100 my-4 mx-2" />
-          
+
           <button
             onClick={() => {
               setViewMode('inquiry');
@@ -226,7 +226,7 @@ export function Dashboard({ session }: DashboardProps) {
       <main className="flex-1 overflow-y-auto p-4 lg:p-12 pt-24 lg:pt-12 bg-[#fcfcf9]">
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 max-w-6xl mx-auto px-4 relative z-10">
           <div>
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-5xl font-black text-zinc-900 tracking-tighter mb-4"
@@ -234,7 +234,7 @@ export function Dashboard({ session }: DashboardProps) {
               {viewMode === 'postit' ? '나의 일기장' : viewMode === 'calendar' ? '달력 보기' : viewMode === 'salary' ? '급여 관리' : ''}
             </motion.h1>
 
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -243,10 +243,10 @@ export function Dashboard({ session }: DashboardProps) {
               {viewMode === 'postit'
                 ? '나의 일상이 쌓이는 소중한 공간'
                 : viewMode === 'calendar'
-                ? '미래를 계획하는 나의 시간'
-                : viewMode === 'salary'
-                ? '나의 소중한 급여 정보'
-                : ''}
+                  ? '미래를 계획하는 나의 시간'
+                  : viewMode === 'salary'
+                    ? '나의 소중한 급여 정보'
+                    : ''}
 
             </motion.p>
           </div>
@@ -349,7 +349,7 @@ export function Dashboard({ session }: DashboardProps) {
         )}
       </AnimatePresence>
 
-      <AlertModal 
+      <AlertModal
         isOpen={alertConfig.isOpen}
         message={alertConfig.message}
         type={alertConfig.type}
@@ -382,8 +382,8 @@ export function Dashboard({ session }: DashboardProps) {
             <div className="bg-zinc-900 text-white rounded-3xl p-5 shadow-2xl border border-zinc-700 flex items-start gap-4">
               <div className="w-10 h-10 rounded-2xl bg-red-500 flex items-center justify-center shrink-0 mt-0.5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
@@ -396,8 +396,8 @@ export function Dashboard({ session }: DashboardProps) {
                 className="text-zinc-500 hover:text-white transition-colors shrink-0"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
