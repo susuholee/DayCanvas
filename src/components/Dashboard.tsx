@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LoadingSpinner } from './LoadingSpinner';
 import { AlertModal } from './AlertModal';
 import { ConfirmModal } from './ConfirmModal';
+import { TodayTodoList } from './TodayTodoList';
 
 const DEVELOPER_EMAIL = 'akakak1359@gmail.com';
 
@@ -36,6 +37,7 @@ export function Dashboard({ session }: DashboardProps) {
   const [newInquiryCount, setNewInquiryCount] = useState(0);
   const [devToast, setDevToast] = useState<{ show: boolean; title: string; author: string } | null>(null);
   const [isDeleteAccountOpen, setIsDeleteAccountOpen] = useState(false);
+  const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
 
   const showDevToast = useCallback((title: string, author: string) => {
     setDevToast({ show: true, title, author });
@@ -71,6 +73,7 @@ export function Dashboard({ session }: DashboardProps) {
       const { data, error } = await supabase
         .from('todos')
         .select('*')
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -89,6 +92,23 @@ export function Dashboard({ session }: DashboardProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+
+  const deleteAllMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('todos')
+        .delete()
+        .eq('user_id', session.user.id);
+      if (error) throw error;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['todos', session.user.id] });
+      setAlertConfig({ isOpen: true, message: '모든 일기, 계획, 메모가 삭제되었습니다.', type: 'success' });
+    },
+    onError: () => {
+      setAlertConfig({ isOpen: true, message: '전체 삭제에 실패했습니다. 잠시 후 다시 시도해 주세요.', type: 'error' });
     },
   });
 
@@ -251,7 +271,14 @@ export function Dashboard({ session }: DashboardProps) {
             </motion.p>
           </div>
           {viewMode !== 'salary' && viewMode !== 'inquiry' && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setIsDeleteAllOpen(true)}
+                disabled={loading || todos.length === 0 || deleteAllMutation.isPending}
+                className="px-5 py-3 bg-red-50 border border-red-200 text-red-600 rounded-2xl text-sm font-black hover:bg-red-100 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {deleteAllMutation.isPending ? '삭제 중...' : '전체 삭제'}
+              </button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -286,6 +313,15 @@ export function Dashboard({ session }: DashboardProps) {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col"
               >
+                {(viewMode === 'postit' || viewMode === 'calendar') && (
+                  <TodayTodoList
+                    todos={todos}
+                    userId={session.user.id}
+                    categories={session.user.user_metadata.categories || []}
+                    disabled={deleteAllMutation.isPending}
+                    onAlert={onAlert}
+                  />
+                )}
                 {viewMode === 'postit' ? (
                   <PostitView
                     todos={todos}
@@ -294,7 +330,7 @@ export function Dashboard({ session }: DashboardProps) {
                       try {
                         await updateMutation.mutateAsync({ id, updates });
                         return true;
-                      } catch (error) {
+                      } catch {
                         onAlert('수정 중 오류가 발생했습니다.', 'error');
                         return false;
                       }
@@ -354,6 +390,20 @@ export function Dashboard({ session }: DashboardProps) {
         message={alertConfig.message}
         type={alertConfig.type}
         onClose={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))}
+      />
+
+      <ConfirmModal
+        isOpen={isDeleteAllOpen}
+        onCancel={() => setIsDeleteAllOpen(false)}
+        onConfirm={() => {
+          if (deleteAllMutation.isPending) return;
+          setIsDeleteAllOpen(false);
+          deleteAllMutation.mutate();
+        }}
+        title="전체 삭제"
+        message="모든 날짜와 카테고리의 일기, 계획, 메모를 삭제하시겠습니까? 삭제한 내용은 복구할 수 없습니다. 급여 기록과 문의, 구글 캘린더에 등록된 일정은 삭제되지 않습니다."
+        isDanger={true}
+        confirmLabel="전체 삭제"
       />
 
       <ConfirmModal
